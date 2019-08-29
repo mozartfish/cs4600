@@ -1,0 +1,4 @@
+﻿  main.cpp
+C:\Users\Pranav\Downloads\CS 4600\HW1-DCT-2019\AudioCoding\main.cpp(75,22): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Pranav\Downloads\CS 4600\HW1-DCT-2019\AudioCoding\main.cpp(140,29): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
+  002-Transform-Coding-Audio.vcxproj -> C:\Users\Pranav\Downloads\CS 4600\HW1-DCT-2019\AudioCoding\x64\Debug\002-Transform-Coding-Audio.exe
