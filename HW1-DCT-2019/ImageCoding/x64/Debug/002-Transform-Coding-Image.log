@@ -1,0 +1,8 @@
+﻿  main.cpp
+C:\Users\Pranav\Desktop\cs_work\cs4600\HW1-DCT-2019\ImageCoding\main.cpp(50,16): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Pranav\Desktop\cs_work\cs4600\HW1-DCT-2019\ImageCoding\main.cpp(58,16): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Pranav\Desktop\cs_work\cs4600\HW1-DCT-2019\ImageCoding\main.cpp(64,16): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Pranav\Desktop\cs_work\cs4600\HW1-DCT-2019\ImageCoding\main.cpp(103,16): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Pranav\Desktop\cs_work\cs4600\HW1-DCT-2019\ImageCoding\main.cpp(111,16): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Pranav\Desktop\cs_work\cs4600\HW1-DCT-2019\ImageCoding\main.cpp(117,16): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
+  002-Transform-Coding-Image.vcxproj -> C:\Users\Pranav\Desktop\cs_work\cs4600\HW1-DCT-2019\ImageCoding\x64\Debug\002-Transform-Coding-Image.exe

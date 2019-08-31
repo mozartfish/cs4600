@@ -33,15 +33,96 @@ void DCT(const float* A, float* C, int blockSize)
 {
 	// TODO: Homework Task 2 (see the PDF description)
 	// Use std::cos
+
+	float sum = 0.0;
+	float cu = 0.0;
+	float cv = 0.0;
+	for (int u = 0; u < 8; u++)
+	{
+		for (int v = 0; v < 8; v++)
+		{
+			for (int x = 0; x < 8; x++)
+			{
+				for (int y = 0; y < 8; y++)
+				{
+					if (u == 0)
+					{
+						cu = 1.0 / std::sqrt(8.0);
+					}
+					else
+					{
+						cu = 1.0 / 2.0;
+					}
+					if (v == 0)
+					{
+						cv = 1.0 / std::sqrt(8.0);
+					}
+					else
+					{
+						cv = 1.0 / 2.0;
+					}
+					sum = sum + cu * cv * std::cos(((2 * x) + 1) * u * M_PI / 16.0) * std::cos(((2 * y) + 1) * v * M_PI / 16.0) * A[x * blockSize + y];
+				}
+			}
+			C[u * blockSize + v] = sum;
+			sum = 0.0;
+		}
+	}
 }
 void compress(float* C, int blockSize, int m)
 {
 	// TODO: Homework Task 2 (see the PDF description)
+	for (int i = 0; i < 8; i++)
+	{
+		for (int j = 0; j < 8; j++)
+		{
+			if (i + j >= m)
+			{
+				C[i * blockSize + j] = 0.0;
+			}
+		}
+	}
 }
 void inverseDCT(const float* C, float* B, int blockSize)
 {
 	// TODO: Homework Task 2 (see the PDF description)
 	// Use std::cos
+	float sum = 0.0;
+	float cu = 0.0;
+	float cv = 0.0;
+	for (int x = 0; x < 8; x++)
+	{
+		for (int y = 0; y < 8; y++)
+		{
+			for (int u = 0; u < 8; u++)
+			{
+				for (int v = 0; v < 8; v++)
+				{
+					if (u == 0)
+					{
+						cu = 1.0 / std::sqrt(8.0);
+					}
+					else
+					{
+						cu = 1.0 / 2.0;
+					}
+					if (v == 0)
+					{
+						cv = 1.0 / std::sqrt(8.0);
+					}
+					else
+					{
+						cv = 1.0 / 2.0;
+					}
+					sum = sum + cu * cv * std::cos(((2 * x) + 1) * u * M_PI / 16.0) * std::cos(((2 * y) + 1) * v * M_PI / 16.0) * C[u * blockSize + v];
+				}
+			}
+
+			B[x * blockSize + y] = sum;
+			sum = 0.0;
+		}
+	}
+
 }
 
 void processBlock(const float* A, float* B, int m)
@@ -268,7 +349,7 @@ int main()
 {
 	loadImage();
 
-	int m = 1;	// TODO: change the parameter m to see different image quality
+	int m = 5;	// TODO: change the parameter m to see different image quality
 	processImage(g_luminance_data, g_compressed_luminance_data, m);	
 
 	writeImage();

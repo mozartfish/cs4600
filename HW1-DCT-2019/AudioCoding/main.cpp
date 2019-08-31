@@ -76,7 +76,7 @@ void DCT(const float* A, float* C, int size)
 		square_sum = 0;
 	}
 
-	// Compute the matrix again with stored c(u)values
+	// Compute the matrix again with stored c(u) values
 	for (int e = 0; e < 8; e++)
 	{
 		for (int r = 0; r < 8; r++)
