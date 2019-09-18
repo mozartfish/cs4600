@@ -71,7 +71,6 @@ void DCT(const float* A, float* C, int size)
 		{
 			square_sum = square_sum + std::pow(q_matrix[d][f], 2);
 		}
-		
 		cu_vector[d] = 1.0 / std::sqrt(square_sum);
 		square_sum = 0;
 	}
