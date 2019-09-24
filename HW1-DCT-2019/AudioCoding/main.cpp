@@ -4,188 +4,701 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
-#include <cmath>
+#include <string>
+#include <math.h>
 
 #define M_PI 3.141592654f
 
-#define WAV_FILE "data/train.wav"
-
 unsigned int g_windowWidth = 600;
 unsigned int g_windowHeight = 600;
-char* g_windowName = "HW1-Transform-Coding-Audio";
+char* g_windowName = "HW2-Rasterization";
 
 GLFWwindow* g_window;
-bool g_draw_origin = true;
 
-// WAVE PCM sound file format 
-typedef struct header_file
+const int g_image_width = g_windowWidth;
+const int g_image_height = g_windowHeight;
+
+std::vector<float> g_image;
+int counter = 0;
+
+void putPixel(int x, int y)
 {
-	char chunk_id[4];
-	int chunk_size;
-	char format[4];
-	char subchunk1_id[4];
-	int subchunk1_size;
-	short int audio_format;
-	short int num_channels;
-	int sample_rate;            // sample_rate denotes the sampling rate.
-	int byte_rate;
-	short int block_align;
-	short int bits_per_sample;
-	char subchunk2_id[4];
-	int subchunk2_size;         // subchunk2_size denotes the number of samples.
-} header;
+	// clamp
+	if (x >= g_image_width || x < 0 || y >= g_image_height || y < 0) return;
 
-header_file* g_wav_header; 
-
-// wav data
-float* g_wav_data;
-float* g_compress_wav_data;
-int g_wav_size;
-
-
-
-void DCT(const float* A, float* C, int size)
-{
-	// TODO: part of Homework Task 1
-	// Use std::cos
-
-	// Define some local variables for storing data
-	float q_matrix[8][8];
-	float cu_vector[8];
-	float square_sum = 0;
-	float matrix_vector_sum = 0;
-
-	// Compute the q matrix
-	for (int u = 0; u < 8; u++)
-	{
-		for (int i = 0; i < 8; i++)
-		{
-			q_matrix[u][i] = std::cos(((2 * i + 1) * u * M_PI) / 16);
-		}
-	}
-
-	// Compute the c(u) values
-	for (int d = 0; d < 8; d++)
-	{
-		for (int f = 0; f < 8; f++)
-		{
-			square_sum = square_sum + std::pow(q_matrix[d][f], 2);
-		}
-		cu_vector[d] = 1.0 / std::sqrt(square_sum);
-		square_sum = 0;
-	}
-
-	// Compute the matrix again with stored c(u) values
-	for (int e = 0; e < 8; e++)
-	{
-		for (int r = 0; r < 8; r++)
-		{
-			q_matrix[e][r] = cu_vector[e] * std::cos(((2 * r + 1) * e * M_PI) / 16);
-		}
-	}
-
-	// Compute the matrix vector product for the coefficients
-	for (int g = 0; g < 8; g++)
-	{
-		for (int h = 0; h < 8; h++)
-		{
-			matrix_vector_sum = matrix_vector_sum + q_matrix[g][h] * A[h];
-		}
-
-		C[g] = matrix_vector_sum;
-		matrix_vector_sum = 0;
-	}
+	// write
+	g_image[y * g_image_width + x] = 1.0f;
 }
-void compress(float* C, int size, int m)
+
+//-------------------------------------------------------------------------------
+
+// Function that maps Cartesian Coordinate System to Screen Coordinate System for Quadrant 3
+void QuadrantThreeRepresentation(int x1, int y1, int scaleX, int scaleY)
 {
-	// TODO: part of Homework Task 1
-	for (int i = 0; i < 8; i++)
-	{
-		if (i >= m)
-		{
-			C[i] = 0;
-		}
-	}
+	int tempX1 = x1;
+	int tempY1 = y1;
+
+	x1 = x1 + scaleX;
+	y1 = (y1 * -1) + scaleY;
+	//std::cout << x1 << ", " << y1 << std::endl;
+	putPixel(x1, y1);
+}
+
+// Function that maps Cartesian Coordinate System to Screen Coordinate System for Quadrant 4
+void QuadrantFourRepresentation(int x1, int y1, int scaleX, int scaleY)
+{
+	int tempX1 = x1;
+	int tempY1 = y1;
+	x1 = x1 + scaleX;
+	y1 = (y1 * -1) + scaleY;
+	//std::cout << x1 << ", " << y1 << std::endl;
+	putPixel(x1, y1);
+}
+
+// Function that maps Cartesian Coordinate System to Screen Coordinate System for Quadrant 5
+void QuadrantFiveRepresentation(int x1, int y1, int scaleX, int scaleY)
+{
+	int oldTempX1, oldTempY1;
+	oldTempX1 = x1;
+	oldTempY1 = y1;
+	// Reflect Back Over the origin
+	x1 = -x1;
+	y1 = -y1;
+
+	// Map to Screen Coordinates
+	x1 = x1 + scaleX;
+	y1 = y1 + scaleY;
+
+	// Swap Coordinates
+	int tempX1 = x1;
+	x1 = y1;
+	y1 = tempX1;
+
+	//std::cout << x1 << ", " << y1 << std::endl;
+
+	putPixel(x1, y1);
+}
+
+// Function that maps Cartesian Coordinate System to Screen Coordinate System for Quadrant 6
+void QuadrantSixRepresentation(int x1, int y1, int scaleX, int scaleY)
+{
+	int tempX1, tempY1;
+	tempX1 = x1;
+	tempY1 = y1;
+
+	// Reflect over the origin
+	x1 = -x1;
+	y1 = -y1;
+
+	// Map to Screen Coordinates
+	x1 = x1 + scaleX;
+	y1 = y1 + scaleY;
+
+	//std::cout << x1 << ", " << y1 << std::endl;
+
+	putPixel(x1, y1);
 
 }
-void inverseDCT(const float* C, float* B, int size)
+
+// Function that maps Cartesian Coordinate System to Screen Coordinate System for Quadrant 7
+void QuadrantSevenRepresentation(int x1, int y1, int scaleX, int scaleY)
 {
-	// Define some local variables for storing data
-	float qinverse_matrix[8][8];
-	float cuinverse_vector[8];
-	float squareinverse_sum = 0;
-	float matrixinverse_vector_sum = 0;
+	int tempX1, tempY1;
+	tempX1 = x1;
+	tempY1 = y1;
 
-	// TODO: part of Homework Task 1
-	// Use std::cos
+	// Reflect Across Y axis
+	x1 = -x1;
 
-	// Compute the q inverse matrix
-	for (int i = 0; i < 8; i++)
-	{
-		for (int u = 0; u < 8; u++)
-		{
-			qinverse_matrix[i][u] = std::cos(((2 * i + 1) * u * M_PI) / 16);
-		}
-	}
+	// Map to Screen Coordinate System
+	x1 = x1 + scaleX;
+	y1 = y1 + scaleY;
 
-	// Compute the c(u) values for q inverse
-	for (int d = 0; d < 8; d++)
-	{
-		for (int f = 0; f < 8; f++)
-		{
-			squareinverse_sum = squareinverse_sum + std::pow(qinverse_matrix[d][f], 2);
-		}
-
-		cuinverse_vector[d] = 1.0 / std::sqrt(squareinverse_sum);
-		squareinverse_sum = 0;
-	}
-
-	// Compute the matrix again with stored c(u)values
-	for (int r = 0; r < 8; r++)
-	{
-		for (int e = 0; e < 8; e++)
-		{
-			qinverse_matrix[r][e] = cuinverse_vector[r] * std::cos(((2 * r + 1) * e * M_PI) / 16);
-		}
-	}
-
-	// Compute the matrix vector product for the coefficients
-	for (int g = 0; g < 8; g++)
-	{
-		for (int h = 0; h < 8; h++)
-		{
-			matrixinverse_vector_sum = matrixinverse_vector_sum + qinverse_matrix[g][h] * C[h];
-		}
-
-		B[g] = matrixinverse_vector_sum;
-		matrixinverse_vector_sum = 0;
-	}
-
-
+	//std::cout << x1 << ", " << y1 << std::endl;
+	putPixel(x1, y1);
 }
-void processBlock(const float* A, float* B, int m)
-{
-	const int size = 8;
-	float* C = new float[size];
-	DCT(A, C, size);
-	compress(C, size, m);
-	inverseDCT(C, B, size);
-	delete[] C;
-}
-void processWAVSignal()
-{
-	float *A, *B;
 
-	const int m = 4; // TODO: change the parameter m as discussed in Homework Task 1
+// Function that maps Cartesian Coordinate System to Screen Coordinate System for Quadrant 8 
+void QuadrantEightRepresentation(int x1, int y1, int scaleX, int scaleY)
+{
+	int oldTempX1, oldTempY1;
+	oldTempX1 = x1;
+	oldTempY1 = y1;
+
+	// Reflect across x axis
+	y1 = -y1;
+
+	// Map to Screen Coordinates
+	x1 = x1 + scaleX;
+	y1 = y1 + scaleY;
+
+	// Swap Coordinates
+	int tempX1 = x1;
+	x1 = y1;
+	y1 = tempX1;
 	
-	// processing data by 8
-	for (int i = 0; i < g_wav_size; i += 8)
+	std::cout << x1 << ", " << y1 << std::endl;
+	putPixel(x1, y1);
+}
+
+// Function that maps Cartesian Coordinate System to Screen Coordinate System for Vertical Lines (Bottom Up)
+void verticalLinesBottomUp(int x1, int y1, int scaleX, int scaleY)
+{
+}
+
+// Function that maps Cartesian Coordinate System to Screen Coordinate System for Vertical Lines (Top Down)
+void verticalLinesTopDown(int x1, int y1, int scaleX, int scaleY)
+{
+	int oldTempX1, oldTempY1;
+
+	oldTempX1 = x1;
+	oldTempY1 = y1;
+
+	// Reflect Across Y axis
+	x1 = -x1;
+
+	// Map to Screen Coordinates
+	x1 = x1 + scaleX;
+	y1 = y1 + scaleY;
+
+	// Swap Coordinates
+
+	int tempX1 = x1;
+	x1 = y1;
+	y1 = tempX1;
+
+
+	std::cout << x1 << ", " << y1 << std::endl;
+
+	putPixel(x1, y1);
+}
+
+// Functon that Maps Cartesian Coordinate System to Screen Coordinate System for Horizontal Lines (Left Right)
+void horizontalLinesLeftRight(int x1, int y1, int scaleX, int scaleY)
+{
+}
+
+// Function that Maps Cartesian Coordinate System to Screen Coordinate System for Horizontal Lines (Right Left)
+void horizontalLinesRightLeft(int x1, int y1, int scaleX, int scaleY)
+{
+}
+
+
+
+
+
+void drawLine(int x1, int y1, int x2, int y2)
+{
+	// TODO: part of Homework Task 1
+	// This function should draw a line from pixel (x1, y1) to pixel (x2, y2)
+
+	// Quadrant 1 Case
+	if (x1 < x2 && y1 < y2 && std::abs(y2 - y1) > std::abs(x2 - x1))
 	{
-		A = g_wav_data + i;
-		B = g_compress_wav_data + i;
-		processBlock(A, B, m);
+		std::cout << "Quadrant 1 Case" << std::endl;
+
+		int tempX1, tempY1, tempX2, tempY2;
+
+		tempX1 = x1;
+		tempY1 = y1;
+		tempX2 = x2;
+		tempY2 = y2;
+
+		x1 = y1;
+		y1 = tempX1;
+		x2 = y2;
+		y2 = tempX2;
+
+		int dx, dy, D, inc0, inc1;
+
+		dx = x2 - x1;
+		dy = y2 - y1;
+		D = 2 * dy - dx;
+		inc0 = 2 * dy;
+		inc1 = 2 * (dy - dx);
+		putPixel(x1, y1);
+
+		while (x1 < x2)
+		{
+			if (D <= 0)
+			{
+				D = D + inc0;
+			}
+			else
+			{
+				D = D + inc1;
+				y1 = y1 + 1;
+			}
+
+			x1 = x1 + 1;
+			putPixel(y1, x1);
+		}
+
+
+	}
+
+	// Quadrant 2
+	if (x1 < x2 && std::abs(y2 - y1) < std::abs(x2 - x1) && y1 < y2)
+	{
+		std::cout << "Quadrant 2 Case" << std::endl;
+		int dx, dy, D, inc0, inc1;
+
+		dx = x2 - x1;
+		dy = y2 - y1;
+		D = 2 * dy - dx;
+		inc0 = 2 * dy;
+		inc1 = 2 * (dy - dx);
+		putPixel(x1, y1);
+
+		while (x1 < x2)
+		{
+			if (D <= 0)
+			{
+				D = D + inc0;
+			}
+			else
+			{
+				D = D + inc1;
+				y1 = y1 + 1;
+			}
+			x1 = x1 + 1;
+			putPixel(x1, y1);
+		}
+	}
+
+
+	// Quadrant 3
+	if (x2 > x1 && y2 < y1 && std::abs(y1 - y2) < std::abs(x2 - x1))
+	{
+		std::cout << "Quadrant 3 Case" << std::endl;
+
+		int tempX1, tempY1, tempX2, tempY2, scaleX, scaleY;
+		tempX1 = x1;
+		tempX2 = x2;
+		tempY1 = y1;
+		tempY2 = y2;
+
+		scaleX = x1;
+		scaleY = y1;
+
+		// Map to Cartesian Coordinate System
+		x1 = x1 - scaleX;
+		y1 = y1 - scaleY;
+		x2 = x2 - scaleX;
+		y2 = y2 - scaleY;
+
+		// Reflect to Positive Coordinates
+		y2 = -y2;
+
+		int dx, dy, D, inc0, inc1;
+
+		dx = x2 - x1;
+		dy = y2 - y1;
+		D = 2 * dy - dx;
+		inc0 = 2 * dy;
+		inc1 = 2 * (dy - dx);
+		putPixel(tempX1, tempY1);
+
+		while (x1 < x2)
+		{
+			if (D <= 0)
+			{
+				D = D + inc0;
+			}
+			else
+			{
+				D = D + inc1;
+				y1 = y1 + 1;
+			}
+			x1 = x1 + 1;
+			QuadrantThreeRepresentation(x1, y1, scaleX, scaleY);
+		}
+	}
+
+	// Quadrant 4
+	if (x2 > x1 && y2 < y1 && std::abs(y2 - y1) > std::abs(x2 - x1))
+	{
+		std::cout << "Quadrant 4 Case" << std::endl;
+
+		int tempX1, tempY1, tempX2, tempY2, scaleX, scaleY;
+		// Determine the scale and scale coordinates accordingly
+		scaleX = x1;
+		scaleY = y1;
+		tempX1 = x1;
+		tempY1 = y1;
+		tempX2 = x2;
+		tempY2 = y2;
+		x1 = x1 - scaleX;
+		y1 = y1 - scaleY;
+		x2 = x2 - scaleX;
+		y2 = y2 - scaleY;
+
+		// Reflect across the y axis
+		y2 = -y2;
+
+		int dx, dy, D, inc0, inc1;
+
+		dx = x2 - x1;
+		dy = y2 - y1;
+		D = 2 * dy - dx;
+		inc0 = 2 * dy;
+		inc1 = 2 * (dy - dx);
+		putPixel(tempX1, tempY1);
+
+		while (x1 < x2)
+		{
+			if (D <= 0)
+			{
+				D = D + inc0;
+			}
+			else
+			{
+				D = D + inc1;
+				y1 = y1 + 1;
+			}
+			x1 = x1 + 1;
+			QuadrantFourRepresentation(x1, y1, scaleX, scaleY);
+		}
+	}
+
+	// Quadrant 5 Case
+	if (x2 < x1 && y2 < y1 && std::abs(y2 - y1) > std::abs(x2 - x1))
+	{
+		std::cout << "Quadrant 5 Case" << std::endl;
+
+		// Map coordinates to Cartesian Coordinates
+		int tempX1, tempY1, tempX2, tempY2, scaleX, scaleY;
+		tempX1 = x1;
+		tempY1 = y1;
+		tempX2 = x2;
+		tempY2 = y2;
+
+		// Swap Coordinates
+		x1 = y1;
+		y1 = tempX1;
+		x2 = y2;
+		y2 = tempX2;
+
+		scaleX = x1;
+		scaleY = y1;
+
+		x1 = x1 - scaleX;
+		y1 = y1 - scaleY;
+		x2 = x2 - scaleX;
+		y2 = y2 - scaleY;
+
+		// Reflect Coordinates about the Origin for drawing
+		x2 = -x2;
+		y2 = -y2;
+
+		int dx, dy, D, inc0, inc1;
+
+		dx = x2 - x1;
+		dy = y2 - y1;
+		D = 2 * dy - dx;
+		inc0 = 2 * dy;
+		inc1 = 2 * (dy - dx);
+		putPixel(tempX1, tempY1);
+
+		while (x1 < x2)
+		{
+			if (D <= 0)
+			{
+				D = D + inc0;
+			}
+			else
+			{
+				D = D + inc1;
+				y1 = y1 + 1;
+			}
+			x1 = x1 + 1;
+			QuadrantFiveRepresentation(x1, y1, scaleX, scaleY);
+		}
+
+
+
+	}
+
+	// Quadrant 6 Case
+	if (x2 < x1 && y2 < y1 && std::abs(y2 - y1) < std::abs(x2 - x1))
+	{
+		std::cout << "Quadrant 6 Case" << std::endl;
+
+		// Map Coordinates to Cartesian Coordinates
+		int tempX1, tempY1, tempX2, tempY2, scaleX, scaleY;
+
+		tempX1 = x1;
+		tempY1 = y1;
+		tempX2 = x2;
+		tempY2 = y2;
+
+		scaleX = x1;
+		scaleY = y1;
+
+		x1 = x1 - scaleX;
+		y1 = y1 - scaleY;
+		x2 = x2 - scaleX;
+		y2 = y2 - scaleY;
+
+		// Reflect over origin
+		x2 = -x2;
+		y2 = -y2;
+
+		int dx, dy, D, inc0, inc1;
+
+		dx = x2 - x1;
+		dy = y2 - y1;
+		D = 2 * dy - dx;
+		inc0 = 2 * dy;
+		inc1 = 2 * (dy - dx);
+		putPixel(tempX1, tempY1);
+
+		while (x1 < x2)
+		{
+			if (D <= 0)
+			{
+				D = D + inc0;
+			}
+			else
+			{
+				D = D + inc1;
+				y1 = y1 + 1;
+			}
+			x1 = x1 + 1;
+			QuadrantSixRepresentation(x1, y1, scaleX, scaleY);
+		}
+
+	}
+
+	// Quadrant 7 Case
+	if (x2 < x1 && y2 > y1 && std::abs(y2 - y1) < std::abs(x2 - x1))
+	{
+		std::cout << "Quadrant 7 Case" << std::endl;
+
+		int tempX1, tempY1, tempX2, tempY2, scaleX, scaleY;
+
+		// Map coordinates to Cartesian Coordinates
+		tempX1 = x1;
+		tempY1 = y1;
+		tempX2 = x2;
+		tempY2 = y2;
+
+		scaleX = x1;
+		scaleY = y1;
+
+		x1 = x1 - scaleX;
+		y1 = y1 - scaleY;
+		x2 = x2 - scaleX;
+		y2 = y2 - scaleY;
+
+		// Reflect Across Y axis
+		x2 = -x2;
+
+		int dx, dy, D, inc0, inc1;
+
+		dx = x2 - x1;
+		dy = y2 - y1;
+		D = 2 * dy - dx;
+		inc0 = 2 * dy;
+		inc1 = 2 * (dy - dx);
+		putPixel(tempX1, tempY1);
+
+		while (x1 < x2)
+		{
+			if (D <= 0)
+			{
+				D = D + inc0;
+			}
+			else
+			{
+				D = D + inc1;
+				y1 = y1 + 1;
+			}
+			x1 = x1 + 1;
+			QuadrantSevenRepresentation(x1, y1, scaleX, scaleY);
+		}
+
+
+	}
+
+	// Quadrant 8 Case
+	if (x2 < x1 && y2 > y1 && std::abs(y2 - y1) > std::abs(x2 - x1))
+	{
+		std::cout << "Quadrant 8 Case" << std::endl;
+
+		// Map Screen Coordinates to Cartesian Coordinates
+		int tempX1, tempY1, tempX2, tempY2, scaleX, scaleY;
+		tempX1 = x1;
+		tempY1 = y1;
+		tempX2 = x2;
+		tempY2 = y2;
+
+		x1 = y1;
+		y1 = tempX1;
+		x2 = y2;
+		y2 = tempX2;
+		scaleX = x1;
+		scaleY = y1;
+
+		x1 = x1 - scaleX;
+		y1 = y1 - scaleY;
+		x2 = x2 - scaleX;
+		y2 = y2 - scaleY;
+
+		// Reflect Across X-Axis
+		y2 = -y2;
+
+		int dx, dy, D, inc0, inc1;
+
+		dx = x2 - x1;
+		dy = y2 - y1;
+		D = 2 * dy - dx;
+		inc0 = 2 * dy;
+		inc1 = 2 * (dy - dx);
+		putPixel(tempX1, tempY1);
+
+		while (x1 < x2)
+		{
+			if (D <= 0)
+			{
+				D = D + inc0;
+			}
+			else
+			{
+				D = D + inc1;
+				y1 = y1 + 1;
+			}
+			x1 = x1 + 1;
+			QuadrantEightRepresentation(x1, y1, scaleX, scaleY);
+		}
+	}
+
+	// Vertical Line Case (Top Down)
+	if (x1 == x2 && y2 < y1 && std::abs(x2 - x1) < std::abs(y2 - y1))
+	{
+		std::cout << "Vertical Line Case (Top Down)" << std::endl;
+
+		int tempX1, tempY1, tempX2, tempY2, scaleX, scaleY;
+
+		// Swap Coordinates
+		tempX1 = x1;
+		tempY1 = y1;
+		tempX2 = x2;
+		tempY2 = y2;
+
+		x1 = y1;
+		y1 = tempX1;
+		x2 = y2;
+		y2 = tempX2;
+
+		// Set Mapping to Cartesian Coordinates
+		scaleX = x1;
+		scaleY = y1;
+
+		// Map to Cartesian Coordinates
+		x1 = x1 - scaleX;
+		y1 = y1 - scaleY;
+		x2 = x2 - scaleX;
+		y2 = y2 - scaleY;
+
+		// Reflect Across the Y axis
+		x2 = -x2;
+
+		int dx, dy, D, inc0, inc1;
+
+		dx = x2 - x1;
+		dy = y2 - y1;
+		D = 2 * dy - dx;
+		inc0 = 2 * dy;
+		inc1 = 2 * (dy - dx);
+		putPixel(tempX1, tempY1);
+
+		while (x1 < x2)
+		{
+			if (D <= 0)
+			{
+				D = D + inc0;
+			}
+			else
+			{
+				D = D + inc1;
+				y1 = y1 + 1;
+			}
+			x1 = x1 + 1;
+			verticalLinesTopDown(x1, y1, scaleX, scaleY);
+		}
+
+
+
+	}
+
+
+}
+
+void CirclePoints(int xCoord, int yCoord)
+{
+	putPixel(xCoord, yCoord);
+	putPixel(yCoord, xCoord);
+	putPixel(xCoord, -yCoord);
+	putPixel(yCoord, -xCoord);
+	putPixel(-xCoord, yCoord);
+	putPixel(-yCoord, xCoord);
+	putPixel(-xCoord, -yCoord);
+	putPixel(-yCoord, -xCoord);
+}
+
+void drawCircle(int x0, int y0, int R)
+{
+	// TODO: part of Homework Task 2
+	// This function should draw a circle,
+	// where pixel (x0, y0) is the center of the circle and R is the radius
+
+	int x, y, D;
+
+	x = 0;
+	y = R;
+	D = 1 - R;
+
+	CirclePoints(0, R);
+
+	while (y > x)
+	{
+		if (D < 0)
+		{
+			D = D + 2 * x + 3;
+		}
+		else
+		{
+			D = D + 2 * (x - y) + 5;
+			y = y - 1;
+		}
+		x = x + 1;
+		CirclePoints(x, y);
+
 	}
 }
+
+struct line
+{
+	int x1, x2, y1, y2;
+	// TODO: part of Homework Task 3
+	// This function should initialize the variables of struct line
+	void init() { }
+	// This function should update the values of member variables and draw a line when 2 points are clicked. 
+	void AddPoint(int x, int y) { }
+};
+
+struct circle
+{
+	int x0, y0, R;
+	// TODO: part of Homework Task 3
+	// This function should initialize the variables of struct circle
+	void init() { }
+	// This function should update the values of member variables and draw a circle when 2 points are clicked
+	// The first clicked point should be the center of the circle
+	// The second clicked point should be a point on the circle
+	void AddPoint(int x, int y) { }
+};
 
 void glfwErrorCallback(int error, const char* description)
 {
@@ -199,20 +712,73 @@ void glfwKeyCallback(GLFWwindow* p_window, int p_key, int p_scancode, int p_acti
 	{
 		glfwSetWindowShouldClose(g_window, GL_TRUE);
 	}
-	else if (p_action == GLFW_PRESS)
+	else if (p_key == GLFW_KEY_L && p_action == GLFW_PRESS)
 	{
-		switch (p_key)
+		std::cout << "Line mode" << std::endl;
+		// TODO: part of Homework Task 3
+		// This part switch on the line mode
+	}
+	else if (p_key == GLFW_KEY_C && p_action == GLFW_PRESS)
+	{
+		std::cout << "Circle mode" << std::endl;
+		// TODO: part of Homework Task 3
+		// This part should switch on the circle mode
+	}
+}
+
+//!GLFW mouse callback
+int xCoord1, yCoord1, xCoord2, yCoord2;
+
+void glfwMouseButtonCallback(GLFWwindow* p_window, int p_button, int p_action, int p_mods)
+{
+	double xpos, ypos;
+	glfwGetCursorPos(p_window, &xpos, &ypos);
+	ypos = g_windowHeight - ypos;
+	if (p_button == GLFW_MOUSE_BUTTON_LEFT && p_action == GLFW_PRESS)
+	{
+		std::cout << "You clicked pixel: " << xpos << ", " << ypos << std::endl;
+		// TODO: part of Homework Task 3
+		std::cout << counter << std::endl;
+		if (counter == 0)
 		{
-		case 49:	// press '1'
-			g_draw_origin = true;
-			break;
-		case 50:	// press '2'
-			g_draw_origin = false;
-			break;
-		default:
-			break;
+			//std::cout << "hit the counter" << std::endl;
+			xCoord1 = xpos;
+			yCoord1 = ypos;
+			counter = counter + 1;
+		}
+		else
+		{
+			xCoord2 = xpos;
+			yCoord2 = ypos;
+			drawLine(xCoord1, yCoord1, xCoord2, yCoord2);
+			counter = 0;
+		}
+
+
+
+
+
+	}
+}
+
+//-------------------------------------------------------------------------------
+
+struct color
+{
+	unsigned char r, g, b;
+};
+
+int ReadLine(FILE* fp, int size, char* buffer)
+{
+	int i;
+	for (i = 0; i < size; i++) {
+		buffer[i] = fgetc(fp);
+		if (feof(fp) || buffer[i] == '\n' || buffer[i] == '\r') {
+			buffer[i] = '\0';
+			return i + 1;
 		}
 	}
+	return i;
 }
 
 void initWindow()
@@ -235,6 +801,7 @@ void initWindow()
 
 	// callbacks
 	glfwSetKeyCallback(g_window, glfwKeyCallback);
+	glfwSetMouseButtonCallback(g_window, glfwMouseButtonCallback);
 
 	// Make the window's context current
 	glfwMakeContextCurrent(g_window);
@@ -250,23 +817,8 @@ void initGL()
 
 void render()
 {
-	glColor3f(1.0, 0.0, 0.0);
-	glBegin(GL_LINE_STRIP);
-	if (g_draw_origin)
-	{
-		for (int i = 0; i < g_wav_size; i++)
-		{
-			glVertex2f(-(0.5f - i / float(g_wav_size)) * 2.0f, float(g_wav_data[i]));
-		}
-	}
-	else
-	{
-		for (int i = 0; i < g_wav_size; i++)
-		{
-			glVertex2f(-(0.5f - i / float(g_wav_size)) * 2.0f, float(g_compress_wav_data[i]));
-		}
-	}
-	glEnd();	
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glDrawPixels(g_image_width, g_image_height, GL_LUMINANCE, GL_FLOAT, &g_image[0]);
 }
 
 void renderLoop()
@@ -286,94 +838,76 @@ void renderLoop()
 	}
 }
 
-void writeWAVFile()
+void initImage()
 {
-	FILE * outfile = fopen("data/out.wav", "wb");	// Open wave file in read mode
-
-	const int BUFSIZE = 256;						// BUFSIZE can be changed according to the frame size required (eg:512)
-	short int buff16[BUFSIZE];						// short int used for 16 bit as input data format is 16 bit PCM audio
-
-	int nb;											// variable storing number of bytes returned
-	fwrite(g_wav_header, 1, sizeof(*g_wav_header), outfile);
-
-	int dataSize = 0;
-	int size = g_wav_size * 2;
-	while (size > 0)
-	{
-		if (size > BUFSIZE)
-		{
-			nb = BUFSIZE;
-			size -= BUFSIZE;
-		}
-		else
-		{
-			nb = size;
-			size = 0;
-		}
-		// Incrementing > of frame	
-		for (int i = 0; i < nb / 2; i++) // nb = 256 (frame size)			
-		{
-			buff16[i] = short int(g_compress_wav_data[dataSize] * 32768.0);
-			dataSize++;
-		}
-
-		for (int i = nb / 2; i < nb; i++) buff16[i] = -13108;	// don't change this value
-
-		fwrite(buff16, 1, nb, outfile);          // Writing read data into output file
-	}
+	g_image.resize(g_image_width * g_image_height);
 }
 
-void loadWAVFile()
+bool writeImage()
 {
-	FILE * infile = fopen(WAV_FILE, "rb");		// Open wave file in read mode
+	std::vector<color> tmpData;
+	tmpData.resize(g_image_width * g_image_height);
 
-	const int BUFSIZE = 256;					// BUFSIZE can be changed according to the frame size required (eg:512)
-	int count = 0;								// For counting number of frames in wave file.
-	short int buff16[BUFSIZE];					// short int used for 16 bit as input data format is 16 bit PCM audio
-
-	g_wav_header = (header_file*)malloc(sizeof(header));   // header_p points to a header struct that contains the wave file metadata fields
-
-	int nb;										// variable storing number of bytes returned
-
-	if (infile)
+	for (int i = 0; i < g_image_height; i++)
 	{
-		fread(g_wav_header, 1, sizeof(header), infile);
-
-		std::cout << " Size of Header file is " << sizeof(*g_wav_header) << " bytes" << std::endl;
-		std::cout << " Sampling rate of the input wave file is " << g_wav_header->sample_rate << " Hz" << std::endl;
-		std::cout << " Number of samples in wave file are " << g_wav_header->subchunk2_size << " samples" << std::endl;
-		std::cout << " The number of channels of the file is " << g_wav_header->num_channels << " channels" << std::endl;
-
-		g_wav_size = 0;
-
-		g_wav_data = new float[g_wav_header->subchunk2_size/2];
-		g_compress_wav_data = new float[g_wav_header->subchunk2_size / 2];
-		while ((nb = (int)fread(buff16, 1, BUFSIZE, infile)) > 0)
+		for (int j = 0; j < g_image_width; j++)
 		{
-			// Reading data in chunks of BUFSIZE
-			count++;
+			// make sure the value will not be larger than 1 or smaller than 0, which might cause problem when converting to unsigned char
+			float tmp = g_image[i * g_image_width + j];
+			if (tmp < 0.0f)	tmp = 0.0f;
+			if (tmp > 1.0f)	tmp = 1.0f;
 
-			// Incrementing > of frame	
-			for (int i = 0; i < nb / 2; i++) // nb = 256 (frame size)			
-			{
-				g_wav_data[g_wav_size] = buff16[i] / 32768.0f;
-				g_compress_wav_data[g_wav_size] = g_wav_data[g_wav_size];
-				g_wav_size++;
-			}
+			tmpData[(g_image_height - i - 1) * g_image_width + j].r = unsigned char(tmp * 255.0);
+			tmpData[(g_image_height - i - 1) * g_image_width + j].g = unsigned char(tmp * 255.0);
+			tmpData[(g_image_height - i - 1) * g_image_width + j].b = unsigned char(tmp * 255.0);
 		}
-
-		std::cout << " Number of frames in the input wave file are " << count << std::endl;
-		std::cout << " Size of data " << g_wav_size << std::endl;
 	}
+
+	FILE* fp = fopen("data/out.ppm", "wb");
+	if (!fp) return false;
+
+	fprintf(fp, "P6\r");
+	fprintf(fp, "%d %d\r", g_image_width, g_image_height);
+	fprintf(fp, "255\r");
+	fwrite(tmpData.data(), sizeof(color), g_image_width * g_image_height, fp);
+	fclose(fp);
+
+	return true;
+}
+
+void drawImage()
+{
+
+	//drawLine(150, 10, 450, 10); // horizontal line
+	//drawLine(150, 310, 450, 310); // horizontal line
+	//drawLine(150, 10, 150, 310); // vertical line
+	//drawLine(450, 10, 450, 310); // vertical line
+	//drawLine(150, 310, 300, 410); // positive line
+	//drawLine(300, 410, 450, 310); // negative line
+
+
+	//drawLine(0, 200, 600, 200);
+
+	// New Test Cases
+	//drawLine(300, 200, 400, 500); // Quadrant 1 Test Case
+	//drawLine(300, 200, 500, 300); // Quadrant 2 Test Case
+	//drawLine(300, 200, 600, 100); // Quadrant 3 Test Case
+	//drawLine(300, 500, 500, 200); // Quadrant 4 Test Case
+	//drawLine(200, 400, 100, 50); // Quadrant 5 Test Case
+	//drawLine(300, 200, 100, 50); // Quadrant 6 Test Case
+	//drawLine(500, 100, 300, 200); // Quadrant 7 Test Case
+	//drawLine(200, 200, 100, 500); // Quadrant 8 Test Case
+	drawLine(300, 500, 300, 0); // STILL HAVE YET TO FIGURE OUT THIS TEST CASE
+
+
+	//drawCircle(500, 500, 50);
 }
 
 int main()
 {
-	loadWAVFile();
-
-	processWAVSignal();
-
-	writeWAVFile();
+	initImage();
+	drawImage();
+	writeImage();
 
 	// render loop
 	initWindow();

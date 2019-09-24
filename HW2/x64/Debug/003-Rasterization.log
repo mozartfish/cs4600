@@ -1,0 +1,12 @@
+﻿  main.cpp
+C:\Users\Pranav\Desktop\cs_work\cs4600\HW2\main.cpp(93,18): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Pranav\Desktop\cs_work\cs4600\HW2\main.cpp(182,17): warning C4244:  '=': conversion from 'double' to 'int', possible loss of data
+C:\Users\Pranav\Desktop\cs_work\cs4600\HW2\main.cpp(243,22): warning C4244:  'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\Pranav\Desktop\cs_work\cs4600\HW2\main.cpp(243,16): warning C4244:  'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\Pranav\Desktop\cs_work\cs4600\HW2\main.cpp(249,22): warning C4244:  'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\Pranav\Desktop\cs_work\cs4600\HW2\main.cpp(249,16): warning C4244:  'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\Pranav\Desktop\cs_work\cs4600\HW2\main.cpp(269,22): warning C4244:  'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\Pranav\Desktop\cs_work\cs4600\HW2\main.cpp(269,16): warning C4244:  'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\Pranav\Desktop\cs_work\cs4600\HW2\main.cpp(274,22): warning C4244:  'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\Pranav\Desktop\cs_work\cs4600\HW2\main.cpp(274,16): warning C4244:  'argument': conversion from 'double' to 'int', possible loss of data
+  003-Rasterization.vcxproj -> C:\Users\Pranav\Desktop\cs_work\cs4600\HW2\x64\Debug\003-Rasterization.exe

@@ -1,4 +1,6 @@
 ﻿  main.cpp
-C:\Users\Pranav\Desktop\cs_work\cs4600\HW1-DCT-2019\AudioCoding\main.cpp(74,22): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\Pranav\Desktop\cs_work\cs4600\HW1-DCT-2019\AudioCoding\main.cpp(139,29): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Pranav\Desktop\cs_work\cs4600\HW1-DCT-2019\AudioCoding\main.cpp(745,14): warning C4244:  '=': conversion from 'double' to 'int', possible loss of data
+C:\Users\Pranav\Desktop\cs_work\cs4600\HW1-DCT-2019\AudioCoding\main.cpp(746,14): warning C4244:  '=': conversion from 'double' to 'int', possible loss of data
+C:\Users\Pranav\Desktop\cs_work\cs4600\HW1-DCT-2019\AudioCoding\main.cpp(751,14): warning C4244:  '=': conversion from 'double' to 'int', possible loss of data
+C:\Users\Pranav\Desktop\cs_work\cs4600\HW1-DCT-2019\AudioCoding\main.cpp(752,14): warning C4244:  '=': conversion from 'double' to 'int', possible loss of data
   002-Transform-Coding-Audio.vcxproj -> C:\Users\Pranav\Desktop\cs_work\cs4600\HW1-DCT-2019\AudioCoding\x64\Debug\002-Transform-Coding-Audio.exe
