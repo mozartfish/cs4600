@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
+#include <map>
 
 #define M_PI 3.141592654f
 
@@ -15,9 +16,10 @@ char* g_windowName = "HW3-3D-Basics";
 GLFWwindow* g_window;
 
 // Model data
-std::vector<float> g_meshVertices;
-std::vector<float> g_meshNormals;
-std::vector<unsigned int> g_meshIndices;
+std::vector<float> g_meshVertices; // the vertices of the triangle
+std::vector<float> g_meshNormals; // the vector containing the list of normal vectors
+std::vector<unsigned int> g_meshIndices; // the vector containing the indices of te mesh
+std::map<unsigned int, int> countMap;
 GLfloat g_modelViewMatrix[16];
 
 // Default options
@@ -56,16 +58,140 @@ void normalize(float* a)
 	a[2] /= len;
 }
 
+
+std::vector<float>generateVector(int vertex)
+{
+	// store the resultant vector
+	std::vector<float> vectorResult;
+
+	//std::cout << "The vertex selected is " << vertex << std::endl;
+	
+	// get the coordinates of the point
+	float pX = g_meshVertices[3 * vertex + 0];
+	float pY = g_meshVertices[3 * vertex + 1];
+	float pZ = g_meshVertices[3 * vertex + 2];
+
+	//std::cout << "The x coordinate is " << pX << std::endl;
+	//std::cout << "The y coordinate is " << pY << std::endl;
+	//std::cout << "The z coordinate is " << pZ << std::endl;
+
+	// check if the vertex is already stored in the map
+	if (countMap.count(vertex) == 0)
+	{
+		//std::cout << "The vertex is not located in the table" << std::endl;
+		int counter = 1;
+		countMap[vertex] = counter;
+	}
+	else
+	{
+		//std::cout << "The vertex is located in the table" << std::endl;
+		int counter = countMap[vertex];
+		counter = counter + 1;
+		countMap[vertex] = counter;
+	}
+
+	// push the values
+	vectorResult.push_back(pX);
+	vectorResult.push_back(pY);
+	vectorResult.push_back(pZ);
+
+	//std::cout << "X value is " << vectorResult[0] << std::endl;
+	//std::cout << "Y value is " << vectorResult[1] << std::endl;
+	//std::cout << "Z value is " << vectorResult[2] << std::endl;
+	return vectorResult;
+}
+
+
 void computeNormals()
 {
 	g_meshNormals.resize(g_meshVertices.size());
-
 	// TASK 1
 	// The code below sets all normals to point in the z-axis, so we get a boring constant gray color
 	// The following should be replaced with your code for normal computation
-	for (int v = 0; v < g_meshNormals.size() / 3; ++v)
+
+	// the size of the different vectors
+	//std::cout << "The size of the vertices vector is " << g_meshVertices.size() << std::endl;
+	//std::cout << "The size of the indices vector is " << g_meshIndices.size() << std::endl;
+	//std::cout << "The size of the normals vector is " << g_meshNormals.size() << std::endl;
+	//std::cout << "The size of mesh indices / 3 is " << g_meshIndices.size() / 3 << std::endl;
+	for (int v = 0; v < g_meshIndices.size() / 3; ++v)
 	{
-		g_meshNormals[3 * v + 2] = 1.0;
+		/*g_meshNormals[3 * v + 2] = 1.0;*/
+
+		// get three vertices
+		int point1 = g_meshIndices[3 * v + 0];
+		int point2 = g_meshIndices[3 * v + 1];
+		int point3 = g_meshIndices[3 * v + 2];
+
+		//std::cout << "The value of point1 is " << point1 << std::endl;
+		//std::cout << "The value of point2 is " << point2 << std::endl;
+		//std::cout << "The value of point3 is " << point3 << std::endl;
+
+		// make vectors
+		std::vector<float> vectorP = generateVector(point1);
+		std::vector<float> vectorQ = generateVector(point2);
+		std::vector<float> vectorR = generateVector(point3);
+
+		// compute vector PQ
+		float pQX = vectorQ[0] - vectorP[0];
+		float pQY = vectorQ[1] - vectorP[1];
+		float pQZ = vectorQ[2] - vectorP[2];
+
+		/*std::cout << "The value of the pQ x coordinate is " << pQX << std::endl;
+		std::cout << "The value of the pQ y coordinate is " << pQY << std::endl;
+		std::cout << "The value of the pQ z coordinate is " << pQZ << std::endl;*/
+
+		// compute the vector PR
+		float pRX = vectorR[0] - vectorP[0];
+		float pRY = vectorR[1] - vectorP[1];
+		float pRZ = vectorR[2] - vectorP[2];
+
+		/*std::cout << "The value of the pR x coordinate is " << pRX << std::endl;
+		std::cout << "The value of the pR y coordinate is " << pRY << std::endl;
+		std::cout << "The value of the pR z coordinate is " << pRZ << std::endl;*/
+
+		// compute the cross product
+		float i = (pQY * pRZ) - (pQZ * pRY);
+		float j = (pQZ * pRX) - (pQX * pRZ);
+		float k = (pQX * pRY) - (pQY * pRX);
+
+	/*	std::cout << "The value of i is " << i << std::endl;
+		std::cout << "The value of j is " << j << std::endl;
+		std::cout << "The value of k is " << k << std::endl;*/
+
+		// compute the 2 norm
+		float twoNorm = std::sqrt(std::pow(i, 2) + std::pow(j, 2) + std::pow(k, 2));
+	/*	std::cout << "The two norm is " << twoNorm << std::endl;*/
+
+		// normalize the vector
+		float normalX = i / twoNorm;
+		float normalY = j / twoNorm;
+		float normalZ = k / twoNorm;
+
+		//std::cout << "The value of normalX is " << normalX << std::endl;
+		//std::cout << "The value of normalY is " << normalY << std::endl;
+		//std::cout << "The value of normalZ is " << normalZ << std::endl;
+
+
+		// allocate 9 spots at a time for the normal coordinates
+		// the normal vector is perpendicular to point 1, point 2, and point 3
+		// each point has x, y, z value so we allocate a spot for each x, y, and z values
+		g_meshNormals[3 * point1 + 0] += normalX;
+		g_meshNormals[3 * point1 + 1] += normalY;
+		g_meshNormals[3 * point1 + 2] += normalZ;
+		g_meshNormals[3 * point2 + 0] += normalX;
+		g_meshNormals[3 * point2 + 1] += normalY;
+		g_meshNormals[3 * point2 + 2] += normalZ;
+		g_meshNormals[3 * point3 + 0] += normalX;
+		g_meshNormals[3 * point3 + 1] += normalY;
+		g_meshNormals[3 * point3 + 2] += normalZ;
+	}
+
+	for (int j = 0; j < g_meshNormals.size() / 3; ++j)
+	{
+		g_meshNormals[3 * j] = g_meshNormals[3 * j] / countMap[j];
+		g_meshNormals[3 * j + 1] = g_meshNormals[3 * j + 1] / countMap[j];
+		g_meshNormals[3 * j + 2] = g_meshNormals[3 * j + 2] / countMap[j];
 	}
 }
 

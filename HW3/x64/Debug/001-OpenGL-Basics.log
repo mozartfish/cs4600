@@ -1,19 +1,5 @@
 ﻿  main.cpp
-C:\Users\Pranav\Desktop\cs_work\cs4600\HW3\main.cpp(328,28): warning C4305:  'argument': truncation from 'double' to 'GLfloat'
-C:\Users\Pranav\Desktop\cs_work\cs4600\HW3\main.cpp(332,12): warning C4244:  'initializing': conversion from 'int' to 'float', possible loss of data
-C:\Users\Pranav\Desktop\cs_work\cs4600\HW3\main.cpp(333,12): warning C4244:  'initializing': conversion from 'int' to 'float', possible loss of data
-glfw3.lib(context.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(context.obj)' or at ''; linking object as if no debug info
-glfw3.lib(init.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(init.obj)' or at ''; linking object as if no debug info
-glfw3.lib(input.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(input.obj)' or at ''; linking object as if no debug info
-glfw3.lib(monitor.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(monitor.obj)' or at ''; linking object as if no debug info
-glfw3.lib(vulkan.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(vulkan.obj)' or at ''; linking object as if no debug info
-glfw3.lib(window.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(window.obj)' or at ''; linking object as if no debug info
-glfw3.lib(win32_init.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(win32_init.obj)' or at ''; linking object as if no debug info
-glfw3.lib(win32_joystick.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(win32_joystick.obj)' or at ''; linking object as if no debug info
-glfw3.lib(win32_monitor.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(win32_monitor.obj)' or at ''; linking object as if no debug info
-glfw3.lib(win32_time.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(win32_time.obj)' or at ''; linking object as if no debug info
-glfw3.lib(win32_tls.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(win32_tls.obj)' or at ''; linking object as if no debug info
-glfw3.lib(win32_window.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(win32_window.obj)' or at ''; linking object as if no debug info
-glfw3.lib(wgl_context.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(wgl_context.obj)' or at ''; linking object as if no debug info
-glfw3.lib(egl_context.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(egl_context.obj)' or at ''; linking object as if no debug info
+C:\Users\Pranav\Desktop\cs_work\cs4600\HW3\main.cpp(454,28): warning C4305: 'argument': truncation from 'double' to 'GLfloat'
+C:\Users\Pranav\Desktop\cs_work\cs4600\HW3\main.cpp(458,12): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+C:\Users\Pranav\Desktop\cs_work\cs4600\HW3\main.cpp(459,12): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
   001-OpenGL-Basics.vcxproj -> C:\Users\Pranav\Desktop\cs_work\cs4600\HW3\x64\Debug\001-OpenGL-Basics.exe
