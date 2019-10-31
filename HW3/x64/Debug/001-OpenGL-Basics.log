@@ -1,5 +1,1 @@
-﻿  main.cpp
-C:\Users\Pranav\Desktop\cs_work\cs4600\HW3\main.cpp(454,28): warning C4305: 'argument': truncation from 'double' to 'GLfloat'
-C:\Users\Pranav\Desktop\cs_work\cs4600\HW3\main.cpp(458,12): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
-C:\Users\Pranav\Desktop\cs_work\cs4600\HW3\main.cpp(459,12): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
-  001-OpenGL-Basics.vcxproj -> C:\Users\Pranav\Desktop\cs_work\cs4600\HW3\x64\Debug\001-OpenGL-Basics.exe
+﻿  001-OpenGL-Basics.vcxproj -> C:\Users\Pranav\Desktop\cs_work\cs4600\HW3\x64\Debug\001-OpenGL-Basics.exe

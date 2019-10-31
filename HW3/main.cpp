@@ -19,7 +19,7 @@ GLFWwindow* g_window;
 std::vector<float> g_meshVertices; // the vertices of the triangle
 std::vector<float> g_meshNormals; // the vector containing the list of normal vectors
 std::vector<unsigned int> g_meshIndices; // the vector containing the indices of te mesh
-std::map<unsigned int, int> countMap;
+std::map<unsigned int, int> countMap; // map for storing the frequency of vertices used in the mesh
 GLfloat g_modelViewMatrix[16];
 
 // Default options
@@ -31,6 +31,7 @@ bool showCheckerboard = false;
 // Dolly zoom options 
 float fov = M_PI / 4.f;
 float distance = 4.5f;
+float halfWidth = distance * tan(fov / 2);
 
 // Auxiliary math functions
 float dotProduct(const float* a, const float* b)
@@ -150,7 +151,7 @@ void computeNormals()
 		std::cout << "The value of the pR y coordinate is " << pRY << std::endl;
 		std::cout << "The value of the pR z coordinate is " << pRZ << std::endl;*/
 
-		// compute the cross product
+		// compute the cross product ||PQ x PR||
 		float i = (pQY * pRZ) - (pQZ * pRY);
 		float j = (pQZ * pRX) - (pQX * pRZ);
 		float k = (pQX * pRY) - (pQY * pRX);
@@ -189,10 +190,11 @@ void computeNormals()
 
 	for (int j = 0; j < g_meshNormals.size() / 3; ++j)
 	{
-		g_meshNormals[3 * j] = g_meshNormals[3 * j] / countMap[j];
+		g_meshNormals[3 * j + 0] = g_meshNormals[3 * j + 0] / countMap[j];
 		g_meshNormals[3 * j + 1] = g_meshNormals[3 * j + 1] / countMap[j];
 		g_meshNormals[3 * j + 2] = g_meshNormals[3 * j + 2] / countMap[j];
 	}
+
 }
 
 void loadObj(std::string p_path)
@@ -261,20 +263,30 @@ void togglePerspective() {
 			// Your code for dolly zoom computation goes here
 			// You can use getTime() to change fov over time
 			// distance should be recalculated here using the Equation 2 in the description file
+			fov = std::abs(std::sin(getTime()));
+			std::cout << "The value of the distance is " << distance << std::endl;
+			distance = (halfWidth / std::tan(fov / 2));
 		}
 
 		float fovInDegree = radianToDegree(fov);
-		gluPerspective(fovInDegree, (GLfloat)g_windowWidth / (GLfloat)g_windowHeight, 1.0f, 40.f);
+		// field of view degree is angle
+		// parameter 2 : aspect ratio (the box)
+		// parameter 3: how far we clamp
+		gluPerspective(fovInDegree, (GLfloat)g_windowWidth / (GLfloat)g_windowHeight, 0.1f, distance + 500);
+		//gluPerspective(fovInDegree, (GLfloat)g_windowWidth / (GLfloat)g_windowHeight, 1.0f, 40.f); // the second coordinate is for the distance
 	}
 	// Othogonal Projection
 	else
 	{
-		// Scale down the object for a better view in orthographic projection
-		glScalef(0.5, 0.5, 0.5);
+	
+			// Scale down the object for a better view in orthographic projection
+			glScalef(0.5, 0.5, 0.5);
 
-		// TASK 3
-		// Your code for orthogonal projection goes here
-		// (Hint: you can use glOrtho() function in OpenGL)
+			// TASK 3
+			// Your code for orthogonal projection goes here
+			// (Hint: you can use glOrtho() function in OpenGL
+			// left, right,  bottom, top, near, far
+			glOrtho(-1, 1, -0.75, 0.75, 0.1f, 1000.0f);
 	}
 }
 
@@ -400,17 +412,43 @@ void updateModelViewMatrix()
 {	
 	clearModelViewMatrix();
 
-	// TASK 2
-	// The following code sets a static modelView matrix
-	// This should be replaced with code implementing Task 2
-	// You can use getTime() to change rotation over time
-
 	g_modelViewMatrix[0] = 1.0f;
 	g_modelViewMatrix[5] = 1.0f;
 	g_modelViewMatrix[10] = 1.0f;
 
 	g_modelViewMatrix[14] = -distance;
 	g_modelViewMatrix[15] = 1.0f;
+
+	// TASK 2
+	// The following code sets a static modelView matrix
+	// This should be replaced with code implementing Task 2
+	// You can use getTime() to change rotation over time
+
+
+	float a = g_modelViewMatrix[0];
+	float b = g_modelViewMatrix[1];
+	float c = g_modelViewMatrix[2];
+	float d = g_modelViewMatrix[4];
+	float e = g_modelViewMatrix[5];
+	float f = g_modelViewMatrix[6];
+	float g = g_modelViewMatrix[8];
+	float h = g_modelViewMatrix[9];
+	float i = g_modelViewMatrix[10];
+
+	// Matrix Multiplication with the y rotation matrix where theta is represented by getTime()
+
+	if (teapotSpin == true)
+	{
+		g_modelViewMatrix[0] = (a * std::cos(getTime())) + 0 + (c * -std::sin(getTime()));
+		g_modelViewMatrix[1] = b;
+		g_modelViewMatrix[2] = (a * std::sin(getTime())) + 0 + (c * std::cos(getTime()));
+		g_modelViewMatrix[4] = (d * std::cos(getTime())) + 0 - (f * std::sin(getTime()));
+		g_modelViewMatrix[5] = e;
+		g_modelViewMatrix[6] = (d * std::sin(getTime())) + 0 + (f * std::cos(getTime()));
+		g_modelViewMatrix[8] = (g * std::cos(getTime())) + 0 - (i * std::sin(getTime()));
+		g_modelViewMatrix[9] = h;
+		g_modelViewMatrix[10] = (g * std::sin(getTime())) + 0 + (i * std::cos(getTime()));
+	}
 }
 
 void setModelViewMatrix()
