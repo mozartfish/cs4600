@@ -505,6 +505,10 @@ void skinning(
 		{
 
 			temp += fromHomog(p_weights[j][v] * p_jointTrans[j] * p_jointTransRestInv[j] * toHomog(p_vertices[v]));
+			//std::cout << "joint trans value " << p_jointTrans[j] << std::endl;
+			//std::cout << "jointTransInverse value " << p_jointTransRestInv[j] << std::endl;
+			//std::cout << "weight value " << p_weights[j][v] << std::endl;
+			//std::cout << "temp value " << temp << std::endl;
 		}
 		p_deformedVertices[v] = temp;
 	}
