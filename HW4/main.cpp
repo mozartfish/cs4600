@@ -7,16 +7,16 @@
 
 using namespace Eigen;
 
-class Triangle 
+class Triangle
 {
 public:
 	int indices[3];
-	inline int &operator[](const unsigned int &i) { return indices[i]; };
-	inline int operator[](const unsigned int &i) const { return indices[i]; };
+	inline int& operator[](const unsigned int& i) { return indices[i]; };
+	inline int operator[](const unsigned int& i) const { return indices[i]; };
 	inline void set(int x, int y, int z) { indices[0] = x; indices[1] = y; indices[2] = z; };
 	inline Triangle(int x, int y, int z) { indices[0] = x; indices[1] = y; indices[2] = z; };
 	inline Triangle() {};
-	inline Triangle &operator=(const Triangle &that);
+	inline Triangle& operator=(const Triangle& that);
 };
 
 // ----------------------------------------------------------------------------
@@ -61,7 +61,7 @@ void animate();
 
 float getTime()
 {
-	return (float) glfwGetTime();
+	return (float)glfwGetTime();
 }
 
 void glfwErrorCallback(int error, const char* description)
@@ -152,27 +152,27 @@ void renderSkeletonRig()
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_LIGHTING);
 	glLineWidth(2.0f);
-	glPointSize(6.0f);	
+	glPointSize(6.0f);
 
 	for (unsigned int jointID = 0; jointID < g_numJoints; ++jointID)
-	{		
+	{
 		const int parentJointID = g_jointParent[jointID];
 
 		v1.setZero();
 		v1(3) = 1.0f;
 		v1 = g_jointTrans[jointID] * v1;
-		
+
 		glColor3f(1.0f, 0.0f, 1.0f);
 
 		glBegin(GL_POINTS);
 		glVertex3f(v1(0), v1(1), v1(2));
 		glEnd();
-		
+
 		if (parentJointID != -1)
-		{			
+		{
 			v2.setZero();
-			v2(3) = 1.0f;			
-			v2 = g_jointTrans[parentJointID] * v2;			
+			v2(3) = 1.0f;
+			v2 = g_jointTrans[parentJointID] * v2;
 
 			if (parentJointID % 3 == 0) glColor3f(1.0f, 0.0f, 0.0f);
 			if (parentJointID % 3 == 1) glColor3f(0.0f, 1.0f, 0.0f);
@@ -192,7 +192,7 @@ void renderSkeletonRig()
 
 void renderMesh()
 {
-	glEnable(GL_COLOR_MATERIAL);			
+	glEnable(GL_COLOR_MATERIAL);
 	glBegin(GL_TRIANGLES);
 
 	for (auto& triangle : g_triangles)
@@ -219,7 +219,7 @@ void renderMesh()
 
 				glColor3f(r, g, b);
 			}
-			else 
+			else
 			{
 				glColor3f(0.8f, 0.8f, 0.8f);
 			}
@@ -232,7 +232,7 @@ void renderMesh()
 
 void render()
 {
-	setModelViewMatrix();	
+	setModelViewMatrix();
 	renderMesh();
 	if (g_enableRenderSkeleton) renderSkeletonRig();
 }
@@ -258,7 +258,7 @@ void renderLoop()
 
 // ----------------------------------------------------------------------------
 
-bool loadObj(std::string fname, std::vector<Vector3f> &pts, std::vector<Vector3f> &pts_n, std::vector<Triangle> &triangles)
+bool loadObj(std::string fname, std::vector<Vector3f>& pts, std::vector<Vector3f>& pts_n, std::vector<Triangle>& triangles)
 {
 	char c[500];
 
@@ -370,14 +370,14 @@ bool loadObj(std::string fname, std::vector<Vector3f> &pts, std::vector<Vector3f
 	return true;
 }
 
-void loadSkeleton(std::string fname) 
+void loadSkeleton(std::string fname)
 {
 	std::ifstream in(fname.c_str(), std::ios::in);
 	int jointID, parent;
 	float offsetX, offsetY, offsetZ;
 
 	while (in >> jointID >> parent >> offsetX >> offsetY >> offsetZ)
-	{				
+	{
 		g_jointParent.push_back(parent);
 
 		Matrix4f offset;
@@ -388,12 +388,12 @@ void loadSkeleton(std::string fname)
 		g_jointOffset.push_back(offset);
 	}
 
-	g_numJoints = (unsigned int) g_jointParent.size();
+	g_numJoints = (unsigned int)g_jointParent.size();
 
 	std::cout << "Loaded " << g_numJoints << " joints" << std::endl;
 }
 
-void loaddmat(std::string fname, std::vector<std::vector<float> > &mat)
+void loaddmat(std::string fname, std::vector<std::vector<float> >& mat)
 {
 	std::ifstream in(fname.c_str(), std::ios::in);
 	int cols, rows;
@@ -471,28 +471,42 @@ Vector4f toHomog(const Vector3f& homog)
 // ----------------------------------------------------------------------------
 
 void computeJointTransformations(
-	const std::vector<Matrix4f>& p_local, 
-	const std::vector<Matrix4f>& p_offset, 
-	const std::vector<int>& p_jointParent, 
-	const unsigned int p_numJoints, 
-	std::vector<Matrix4f>& p_global)
+	const std::vector<Matrix4f>& p_local, // T in the lecture
+	const std::vector<Matrix4f>& p_offset, // R in the lecture
+	const std::vector<int>& p_jointParent, // the parent joint
+	const unsigned int p_numJoints,  // the number of joints
+	std::vector<Matrix4f>& p_global) // P represents the F from the function
 {
+	// compute the root node value first
+	p_global[0] = p_offset[0] * p_local[0]; //R(0) * T(0)
+	for (unsigned int i = 1; i < p_numJoints; i++)
+	{
+		p_global[i] = p_global[p_jointParent[i]] * p_offset[i] * p_local[i];
+	}
 	// TASK 1 comes here
 }
 
 void skinning(
-		const std::vector<Vector3f>& p_vertices, 
-		const unsigned int p_numJoints,
-		const std::vector<Matrix4f>& p_jointTrans,
-		const std::vector<Matrix4f>& p_jointTransRestInv,
-		const std::vector<std::vector<float>>& p_weights,
-		std::vector<Vector3f>& p_deformedVertices)
+	const std::vector<Vector3f>& p_vertices,
+	const unsigned int p_numJoints, // the number of joints
+	const std::vector<Matrix4f>& p_jointTrans, // F the rest position from the notes
+	const std::vector<Matrix4f>& p_jointTransRestInv, // the A inverse from the notes
+	const std::vector<std::vector<float>>& p_weights, // the W value from the notes
+	std::vector<Vector3f>& p_deformedVertices) // the resultant deformed vertices
 {
 	// The following code simply copies rest pose vertex positions
 	// You will need to replace this by your solution of TASK 2
+
 	for (unsigned int v = 0; v < p_vertices.size(); v++)
 	{
-		p_deformedVertices[v] = p_vertices[v];
+		Vector3f temp = Vector3f{ 0, 0, 0 };
+		/*p_deformedVertices[v] = p_vertices[v];*/
+		for (unsigned int j = 0; j < p_numJoints; j++)
+		{
+
+			temp += fromHomog(p_weights[j][v] * p_jointTrans[j] * p_jointTransRestInv[j] * toHomog(p_vertices[v]));
+		}
+		p_deformedVertices[v] = temp;
 	}
 }
 
@@ -510,19 +524,19 @@ void animate()
 	const float t = std::fabsf(sinf(getTime()));
 	switch (g_enableAnimate)
 	{
-		case 0: setJointRotations(t); break;
-		case 1: setJointRotations(0.0f); break;
-		case 2: setJointRotations(1.0f); break;
-	}	
+	case 0: setJointRotations(t); break;
+	case 1: setJointRotations(0.0f); break;
+	case 2: setJointRotations(1.0f); break;
+	}
 	computeJointTransformations(g_jointRot, g_jointOffset, g_jointParent, g_numJoints, g_jointTrans);
 	skinning(g_vertices, g_numJoints, g_jointTrans, g_jointTransRestInv, g_weights, g_deformedVertices);
 }
 
-int main(int argc, char *argv[]) 
+int main(int argc, char* argv[])
 {
-	loadData("capsule"); // replace this with the following line to load the Ogre instead
-	//loadData("ogre");
-	
+	/*loadData("capsule");*/ // replace this with the following line to load the Ogre instead
+	loadData("ogre");
+
 	initRestPose();
 
 	std::cout << std::endl << "Controls:" << std::endl
