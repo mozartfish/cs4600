@@ -477,13 +477,14 @@ void computeJointTransformations(
 	const unsigned int p_numJoints,  // the number of joints
 	std::vector<Matrix4f>& p_global) // P represents the F from the function
 {
-	// compute the root node value first
+	// TASK 1 comes here
+	// compute the root node value first since it has a parent of -1
 	p_global[0] = p_offset[0] * p_local[0]; //R(0) * T(0)
 	for (unsigned int i = 1; i < p_numJoints; i++)
 	{
 		p_global[i] = p_global[p_jointParent[i]] * p_offset[i] * p_local[i];
 	}
-	// TASK 1 comes here
+
 }
 
 void skinning(
@@ -496,7 +497,6 @@ void skinning(
 {
 	// The following code simply copies rest pose vertex positions
 	// You will need to replace this by your solution of TASK 2
-
 	for (unsigned int v = 0; v < p_vertices.size(); v++)
 	{
 		Vector3f newVertex = Vector3f{ 0, 0, 0 };
@@ -512,6 +512,7 @@ void skinning(
 			//std::cout << "weight value " << p_weights[j][v] << std::endl;
 			//std::cout << "newVertex value " << newVertex << std::endl;
 		}
+		// add the updated vertex to the list of deformed vertices
 		p_deformedVertices[v] = newVertex;
 	}
 }
