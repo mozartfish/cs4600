@@ -499,18 +499,20 @@ void skinning(
 
 	for (unsigned int v = 0; v < p_vertices.size(); v++)
 	{
-		Vector3f temp = Vector3f{ 0, 0, 0 };
+		Vector3f newVertex = Vector3f{ 0, 0, 0 };
 		/*p_deformedVertices[v] = p_vertices[v];*/
+		// looking at how the vertex is connected to all the joints in the body and computing the sum for that specific vertex
 		for (unsigned int j = 0; j < p_numJoints; j++)
 		{
-
-			temp += fromHomog(p_weights[j][v] * p_jointTrans[j] * p_jointTransRestInv[j] * toHomog(p_vertices[v]));
+			//std::cout << "new Vertex " << newVertex << std::endl;
+			//std::cout << "the value of from homog equation" << fromHomog(p_weights[j][v] * p_jointTrans[j] * p_jointTransRestInv[j] * toHomog(p_vertices[v])) << std::endl;
+			newVertex += fromHomog(p_weights[j][v] * p_jointTrans[j] * p_jointTransRestInv[j] * toHomog(p_vertices[v]));
 			//std::cout << "joint trans value " << p_jointTrans[j] << std::endl;
 			//std::cout << "jointTransInverse value " << p_jointTransRestInv[j] << std::endl;
 			//std::cout << "weight value " << p_weights[j][v] << std::endl;
-			//std::cout << "temp value " << temp << std::endl;
+			//std::cout << "newVertex value " << newVertex << std::endl;
 		}
-		p_deformedVertices[v] = temp;
+		p_deformedVertices[v] = newVertex;
 	}
 }
 
