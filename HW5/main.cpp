@@ -60,6 +60,7 @@ Vector3f diffuse(const Vector3f &L, // direction vector from the point on the su
 	Vector3f resColor = Vector3f::Zero();
 
 	// TODO: implement diffuse shading model
+	resColor = 0.333 * kd * std::max(L.dot(N), 0.f) * diffuseColor;
 
 	return resColor;
 }
@@ -72,12 +73,17 @@ Vector3f phong(const Vector3f &L, // direction vector from the point on the surf
                const Vector3f &specularColor, 
                const float kd, // diffuse reflection constant
                const float ks, // specular reflection constant
-               const float alpha) // shininess constant
+               const float alpha) // shininess constant aka the Phong Exponent
 {
 	Vector3f resColor = Vector3f::Zero();
 
 	// TODO: implement Phong shading model
-
+	Vector3f reflection_vector = 2 * (L.dot(N)) * N - L;
+	reflection_vector.normalize();
+	// Phong Equation
+	// PS = diffuse * kd + specular * ks * specular color
+	// Specular Shadng  = (V * R) ^n
+	resColor = diffuse(L, N, diffuseColor, kd) + ks * std::powf(std::max(reflection_vector.dot(V), 0.f), alpha) * specularColor * 0.333;
 	return resColor;
 }
 
@@ -107,6 +113,7 @@ Vector3f trace(
 				minDistance = t0;
 				sphereIndex = i;
 				hitPoint = rayOrigin + rayDirection * t0; // parametric equation for determing the point where the sphere was hit
+				hitNormal = hitPoint - spheres[sphereIndex].center; // vector from the point of intersection to the center of the sphere
 			}
 		}
 	}
@@ -120,7 +127,6 @@ Vector3f trace(
 		// Part 1: Color the Scene according to the correct colors
 		//pixelColor = spheres[sphereIndex].surfaceColor;
 
-		// Part 2: The Shadows
 		for (int j = 0; j < lightPositions.size(); j++)
 		{
 			bool theShadow = false;
@@ -128,7 +134,10 @@ Vector3f trace(
 			float shadowt1; // t1 for the sahdow
 			Vector3f shadowRayOrigin = hitPoint;
 			Vector3f shadowRayDirection = lightPositions[j] - hitPoint;
+			Vector3f eyeRay = -rayDirection;
+			eyeRay.normalize();
 			shadowRayDirection.normalize();
+			hitNormal.normalize();
 			for (int d = 0; d < spheres.size(); d++)
 			{
 				bool shadowIntersection = spheres[d].intersect(shadowRayOrigin, shadowRayDirection, shadowt0, shadowt1);
@@ -140,7 +149,15 @@ Vector3f trace(
 			}
 			if (!theShadow)
 			{
-				pixelColor += spheres[sphereIndex].surfaceColor * 0.333;
+				// Part 2: The Shadows
+				//pixelColor += spheres[sphereIndex].surfaceColor * 0.333;
+				
+				// Part 3: Diffuse Shading
+				//pixelColor += diffuse(shadowRayDirection, hitNormal, spheres[sphereIndex].surfaceColor, 1);
+
+				// Part 3: Phong Shading
+				pixelColor += phong(shadowRayDirection, hitNormal, eyeRay, spheres[sphereIndex].surfaceColor, Vector3f::Ones(), 1.f, 3.f, 100.f);
+
 			}
 		}
 	}
