@@ -87,8 +87,67 @@ Vector3f trace(
 	const std::vector<Sphere> &spheres)
 {
 	Vector3f pixelColor = Vector3f::Zero();
-
+	Vector3f hitPoint = Vector3f::Zero();
+	Vector3f hitNormal = Vector3f::Zero();
+	float t0; // corresponds to the the t0 for the sphere intersection
+	float t1; // corresponds to the t1 for the sphere intersection
+	bool hitObject = false;
+	float minDistance = INFINITY;
+	float sphereIndex = -1;
 	// TODO: implement ray tracing as described in the homework description
+	// iterate over the scene
+	for (int i = 0; i < spheres.size(); i++)
+	{
+		bool raySphereIntersection = spheres[i].intersect(rayOrigin, rayDirection, t0, t1);
+		if (raySphereIntersection)
+		{
+			hitObject = true;
+			if (t0 < minDistance)
+			{
+				minDistance = t0;
+				sphereIndex = i;
+				hitPoint = rayOrigin + rayDirection * t0; // parametric equation for determing the point where the sphere was hit
+			}
+		}
+	}
+	if (hitObject)
+	{
+		// Part 1: Color the Scene Red
+		//pixelColor[0] = 1;
+		//pixelColor[1] = 0;
+		//pixelColor[2] = 0;
+
+		// Part 1: Color the Scene according to the correct colors
+		//pixelColor = spheres[sphereIndex].surfaceColor;
+
+		// Part 2: The Shadows
+		for (int j = 0; j < lightPositions.size(); j++)
+		{
+			bool theShadow = false;
+			float shadowt0; // t0 for the shadow
+			float shadowt1; // t1 for the sahdow
+			Vector3f shadowRayOrigin = hitPoint;
+			Vector3f shadowRayDirection = lightPositions[j] - hitPoint;
+			shadowRayDirection.normalize();
+			for (int d = 0; d < spheres.size(); d++)
+			{
+				bool shadowIntersection = spheres[d].intersect(shadowRayOrigin, shadowRayDirection, shadowt0, shadowt1);
+				if (shadowIntersection)
+				{
+					theShadow = true;
+					break;
+				}
+			}
+			if (!theShadow)
+			{
+				pixelColor += spheres[sphereIndex].surfaceColor * 0.333;
+			}
+		}
+	}
+	if (!hitObject)
+	{
+		pixelColor = bgcolor;
+	}
 
 	return pixelColor;
 }
