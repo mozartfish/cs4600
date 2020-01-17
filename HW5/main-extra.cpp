@@ -178,7 +178,7 @@ Vector3f trace(
 					break;
 				}
 			}
-
+	
 			if (!theShadow)
 			{
 				// Part 2: The Shadows
@@ -198,7 +198,7 @@ Vector3f trace(
 		if (depth <= MAX_DEPTH)
 		{
 			Vector3f reflection_vector = rayDirection - 2 * rayDirection.dot(hitNormal.normalized()) * hitNormal.normalized();
-			pixelColor = 0.5 * trace(hitPoint, reflection_vector.normalized(), spheres, depth);
+			pixelColor = 0.5 * trace(hitPoint + hitNormal, reflection_vector.normalized(), spheres, depth);
 		}
 	}
 	if (!hitObject)
